@@ -19,7 +19,7 @@ import { ACHIEVEMENTS_DATA } from '../data/achievements';
 
 function getNormalizedBaseUrl(): string {
   let envUrl = (import.meta as any).env?.VITE_API_BASE_URL;
-  if (!envUrl) {
+  if (!envUrl || !envUrl.includes('.') || envUrl.trim() === 'sreyas-media-club-backend') {
     if (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')) {
       return 'https://sreyas-media-club-backend.onrender.com/api';
     }

@@ -60,11 +60,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: sreyas-media-club-backend
-          property: host
-          path: /api
+        value: https://sreyas-media-club-backend.onrender.com/api
 
 databases:
   # 3. Render Managed PostgreSQL Database (Free Database Instance)
