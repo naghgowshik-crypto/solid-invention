@@ -15,8 +15,8 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, Object>> handleBadCredentialsException(BadCredentialsException ex) {
+    @ExceptionHandler({BadCredentialsException.class, org.springframework.security.core.AuthenticationException.class})
+    public ResponseEntity<Map<String, Object>> handleBadCredentialsException(Exception ex) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.UNAUTHORIZED.value());
@@ -64,10 +64,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGlobalException(Exception ex) {
+        ex.printStackTrace();
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        body.put("message", "An unexpected server error occurred. Please try again later.");
+        body.put("message", ex.getMessage() != null && !ex.getMessage().trim().isEmpty() ? ex.getMessage() : ex.getClass().getName());
 
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
