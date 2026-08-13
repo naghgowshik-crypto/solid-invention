@@ -17,7 +17,25 @@ import { STORIES_DATA } from '../data/stories';
 import { CORE_TEAM_MEMBERS } from '../data/teamMembers';
 import { ACHIEVEMENTS_DATA } from '../data/achievements';
 
-const BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8080/api';
+function getNormalizedBaseUrl(): string {
+  let envUrl = (import.meta as any).env?.VITE_API_BASE_URL;
+  if (!envUrl) {
+    if (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')) {
+      return 'https://sreyas-media-club-backend.onrender.com/api';
+    }
+    return 'http://localhost:8080/api';
+  }
+  envUrl = envUrl.trim().replace(/\/+$/, '');
+  if (!/^https?:\/\//i.test(envUrl)) {
+    envUrl = `https://${envUrl}`;
+  }
+  if (!envUrl.endsWith('/api')) {
+    envUrl = `${envUrl}/api`;
+  }
+  return envUrl;
+}
+
+const BASE_URL = getNormalizedBaseUrl();
 
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem('media_club_admin_token');
@@ -25,26 +43,38 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
+  const text = await response.text();
+  let data: any = null;
+
+  if (text && text.trim().length > 0) {
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      // Non-JSON response (e.g. HTML 404/500 fallback)
+    }
+  }
+
   if (!response.ok) {
     let errorMessage = `HTTP error! status: ${response.status}`;
-    try {
-      const errorData = await response.json();
-      if (errorData.message) errorMessage = errorData.message;
-      if (errorData.errors) {
-        const details = Object.entries(errorData.errors)
+    if (data && typeof data === 'object') {
+      if (data.message) errorMessage = data.message;
+      if (data.errors) {
+        const details = Object.entries(data.errors)
           .map(([field, msg]) => `${field}: ${msg}`)
           .join(', ');
         errorMessage += ` (${details})`;
       }
-    } catch (e) {
-      // ignore json parse error
+    } else if (text && text.length < 200) {
+      errorMessage = text;
     }
     throw new Error(errorMessage);
   }
-  if (response.status === 240 || response.status === 204) {
+
+  if (response.status === 204 || response.status === 240 || !data) {
     return {} as T;
   }
-  return response.json() as Promise<T>;
+
+  return data as T;
 }
 
 // 1. Submit Application
