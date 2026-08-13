@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { PageLayout } from '../components/layout/PageLayout';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { CREATIVE_TEAMS } from '../data/teams';
-import { CORE_TEAM_MEMBERS } from '../data/teamMembers';
 import { TeamMember } from '../types/models';
 import { LazyImage } from '../components/ui/LazyImage';
 import { Camera, Video, Mic, Film, Instagram, Linkedin, Wrench, CheckCircle2 } from 'lucide-react';
@@ -17,17 +16,26 @@ const ICON_MAP = {
 
 export const TeamsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'SPECIALIZED' | 'CORE'>('SPECIALIZED');
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(CORE_TEAM_MEMBERS);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoading(true);
     apiFetchTeam()
       .then(data => {
-        if (isMounted && data && data.length > 0) {
-          setTeamMembers(data);
+        if (isMounted) {
+          setTeamMembers(data || []);
+          setIsLoading(false);
         }
       })
-      .catch(err => console.error('Error fetching team members from API:', err));
+      .catch(err => {
+        console.error('Error fetching team members from API:', err);
+        if (isMounted) {
+          setTeamMembers([]);
+          setIsLoading(false);
+        }
+      });
     return () => {
       isMounted = false;
     };
@@ -145,62 +153,72 @@ export const TeamsPage: React.FC = () => {
 
         {/* Core Leadership Section */}
         {activeTab === 'CORE' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {teamMembers.map((member) => (
-              <div
-                key={member.id}
-                className="group rounded-2xl overflow-hidden glass-panel border border-amber-500/20 shadow-card-dark flex flex-col justify-between hover:border-gold-500/40 transition-all duration-300"
-              >
-                <div className="relative h-72 overflow-hidden bg-navy-900">
-                  <LazyImage
-                    src={member.avatarUrl}
-                    alt={member.name}
-                    widthParam={600}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-transparent to-transparent opacity-80" />
-                </div>
-
-                <div className="p-6 space-y-3 flex-grow flex flex-col justify-between">
-                  <div>
-                    <span className="text-xs font-mono font-bold uppercase text-gold-400">
-                      {member.position}
-                    </span>
-                    <h3 className="text-xl font-bold font-heading text-white group-hover:text-gold-300 transition-colors">
-                      {member.name}
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      {member.branch ? `${member.branch} • ` : ''}{member.year || ''}
-                    </p>
-                    <p className="text-xs text-slate-300 mt-2 leading-relaxed">{member.bio}</p>
+          isLoading ? (
+            <div className="flex justify-center items-center py-16">
+              <div className="w-10 h-10 rounded-full border-2 border-gold-500/20 border-t-gold-400 animate-spin" />
+            </div>
+          ) : teamMembers.length === 0 ? (
+            <div className="text-center py-16 glass-panel rounded-2xl border border-amber-500/20">
+              <p className="text-slate-400 text-sm">No team members currently listed.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {teamMembers.map((member) => (
+                <div
+                  key={member.id}
+                  className="group rounded-2xl overflow-hidden glass-panel border border-amber-500/20 shadow-card-dark flex flex-col justify-between hover:border-gold-500/40 transition-all duration-300"
+                >
+                  <div className="relative h-72 overflow-hidden bg-navy-900">
+                    <LazyImage
+                      src={member.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop'}
+                      alt={member.name}
+                      widthParam={600}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-transparent to-transparent opacity-80" />
                   </div>
 
-                  <div className="flex items-center space-x-3 pt-4 border-t border-amber-500/10">
-                    {(member.socials?.instagram || member.instagramUrl) && (
-                      <a
-                        href={member.socials?.instagram || member.instagramUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-slate-400 hover:text-gold-400 transition-colors"
-                      >
-                        <Instagram className="w-4 h-4" />
-                      </a>
-                    )}
-                    {(member.socials?.linkedin || member.linkedinUrl) && (
-                      <a
-                        href={member.socials?.linkedin || member.linkedinUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-slate-400 hover:text-gold-400 transition-colors"
-                      >
-                        <Linkedin className="w-4 h-4" />
-                      </a>
-                    )}
+                  <div className="p-6 space-y-3 flex-grow flex flex-col justify-between">
+                    <div>
+                      <span className="text-xs font-mono font-bold uppercase text-gold-400">
+                        {member.position}
+                      </span>
+                      <h3 className="text-xl font-bold font-heading text-white group-hover:text-gold-300 transition-colors">
+                        {member.name}
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        {member.branch ? `${member.branch} • ` : ''}{member.year || ''}
+                      </p>
+                      <p className="text-xs text-slate-300 mt-2 leading-relaxed">{member.bio || ''}</p>
+                    </div>
+
+                    <div className="flex items-center space-x-3 pt-4 border-t border-amber-500/10">
+                      {(member.socials?.instagram || member.instagramUrl) && (
+                        <a
+                          href={member.socials?.instagram || member.instagramUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-slate-400 hover:text-gold-400 transition-colors"
+                        >
+                          <Instagram className="w-4 h-4" />
+                        </a>
+                      )}
+                      {(member.socials?.linkedin || member.linkedinUrl) && (
+                        <a
+                          href={member.socials?.linkedin || member.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-slate-400 hover:text-gold-400 transition-colors"
+                        >
+                          <Linkedin className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
       </div>
     </PageLayout>

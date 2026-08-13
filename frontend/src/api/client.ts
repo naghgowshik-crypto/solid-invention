@@ -14,7 +14,6 @@ import { EVENTS_DATA } from '../data/events';
 import { GALLERY_ITEMS } from '../data/gallery';
 import { VIDEO_ITEMS } from '../data/videos';
 import { STORIES_DATA } from '../data/stories';
-import { CORE_TEAM_MEMBERS } from '../data/teamMembers';
 import { ACHIEVEMENTS_DATA } from '../data/achievements';
 
 function getNormalizedBaseUrl(): string {
@@ -402,9 +401,9 @@ export async function apiFetchTeam(team?: string): Promise<TeamMember[]> {
     const response = await fetch(`${BASE_URL}/team${query}`);
     if (!response.ok) throw new Error('API offline');
     const data = await response.json();
-    return data.length > 0 ? data : CORE_TEAM_MEMBERS;
+    return Array.isArray(data) ? data : [];
   } catch (e) {
-    return CORE_TEAM_MEMBERS;
+    return [];
   }
 }
 
