@@ -23,12 +23,18 @@ public class WebConfig implements WebMvcConfigurer {
         origins.add("http://127.0.0.1:3000");
         origins.add("http://127.0.0.1:3001");
         origins.add("http://127.0.0.1:3002");
+        origins.add("https://sreyas-media-club-frontend.onrender.com");
         if (frontendUrl != null && !frontendUrl.trim().isEmpty()) {
-            origins.add(frontendUrl.trim());
+            String trimmed = frontendUrl.trim();
+            origins.add(trimmed);
+            if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+                origins.add("https://" + trimmed);
+                origins.add("http://" + trimmed);
+            }
         }
 
         registry.addMapping("/api/**")
-                .allowedOrigins(origins.toArray(new String[0]))
+                .allowedOriginPatterns("https://*.onrender.com", "http://localhost:*", "http://127.0.0.1:*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin")
                 .allowCredentials(true)
