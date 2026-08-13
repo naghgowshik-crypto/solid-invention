@@ -14,8 +14,18 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
-      - key: DATABASE_URL
-        value: jdbc:postgresql://sreyas-media-club-db:5432/sreyas_media_club
+      - key: DB_HOST
+        fromDatabase:
+          name: sreyas-media-club-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: sreyas-media-club-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: sreyas-media-club-db
+          property: database
       - key: DATABASE_USERNAME
         fromDatabase:
           name: sreyas-media-club-db
