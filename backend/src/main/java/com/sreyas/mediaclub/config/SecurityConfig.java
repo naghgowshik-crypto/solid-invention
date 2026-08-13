@@ -63,6 +63,9 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Allow CORS Preflight OPTIONS requests for all endpoints
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                 // Public auth endpoint
                 .requestMatchers("/api/auth/**").permitAll()
                 
@@ -76,10 +79,9 @@ public class SecurityConfig {
                 // Swagger UI, H2 Console, Actuator Health, and Uploaded Media
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/h2-console/**", "/uploads/**", "/actuator/health", "/actuator/**").permitAll()
 
-
                 
                 // Protected Admin APIs
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
                 
                 .anyRequest().authenticated()
             );
