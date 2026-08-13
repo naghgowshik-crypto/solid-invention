@@ -153,6 +153,50 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  // Helper to determine if an event is past using IST timezone (Asia/Kolkata)
+  const isEventPastInAdmin = (dateStr?: string, timeStr?: string): boolean => {
+    if (!dateStr) return false;
+    const now = new Date();
+    const nowISTStr = now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+    const nowIST = new Date(nowISTStr);
+
+    const parsedDate = new Date(dateStr);
+    if (isNaN(parsedDate.getTime())) return false;
+
+    const year = parsedDate.getFullYear();
+    const month = parsedDate.getMonth();
+    const day = parsedDate.getDate();
+
+    let hours = 23;
+    let minutes = 59;
+    let seconds = 59;
+    let hasSpecificTime = false;
+
+    if (timeStr && timeStr.trim()) {
+      const match = timeStr.trim().match(/(\d{1,2}):(\d{2})(?:\s*([AP]M))?/i);
+      if (match) {
+        hasSpecificTime = true;
+        let h = parseInt(match[1], 10);
+        const m = parseInt(match[2], 10);
+        const ampm = match[3] ? match[3].toUpperCase() : null;
+        if (ampm === 'PM' && h < 12) h += 12;
+        if (ampm === 'AM' && h === 12) h = 0;
+        hours = h;
+        minutes = m;
+        seconds = 0;
+      }
+    }
+
+    if (!hasSpecificTime) {
+      hours = 23;
+      minutes = 59;
+      seconds = 59;
+    }
+
+    const eventEndIST = new Date(year, month, day, hours, minutes, seconds);
+    return nowIST.getTime() > eventEndIST.getTime();
+  };
+
   // Event Handlers
   const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -558,21 +602,24 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {eventsList.map((ev) => (
-                <div key={ev.id} className="glass-panel rounded-2xl border border-amber-500/15 p-5 space-y-4 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between">
-                      <h4 className="font-bold text-white text-sm">{ev.title}</h4>
-                      <button
-                        onClick={async () => { await apiToggleEventUpcoming(Number(ev.id)); await loadContentData(); }}
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${ev.isUpcoming ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' : 'bg-slate-500/10 border border-slate-500/30 text-slate-400'}`}
-                      >
-                        {ev.isUpcoming ? 'Upcoming' : 'Past'}
-                      </button>
+              {eventsList.map((ev) => {
+                const isPast = isEventPastInAdmin(ev.date, ev.time);
+                const displayUpcoming = !isPast;
+                return (
+                  <div key={ev.id} className="glass-panel rounded-2xl border border-amber-500/15 p-5 space-y-4 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between">
+                        <h4 className="font-bold text-white text-sm">{ev.title}</h4>
+                        <button
+                          onClick={async () => { await apiToggleEventUpcoming(Number(ev.id)); await loadContentData(); }}
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${displayUpcoming ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' : 'bg-slate-500/10 border border-slate-500/30 text-slate-400'}`}
+                        >
+                          {displayUpcoming ? 'Upcoming' : 'Past'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gold-400">{ev.category} • {ev.date}</p>
+                      <p className="text-xs text-slate-300 line-clamp-2">{ev.description}</p>
                     </div>
-                    <p className="text-xs text-gold-400">{ev.category} • {ev.date}</p>
-                    <p className="text-xs text-slate-300 line-clamp-2">{ev.description}</p>
-                  </div>
 
                   <div className="pt-4 border-t border-amber-500/10 flex items-center justify-end space-x-2">
                     <button
@@ -589,7 +636,8 @@ export const AdminDashboardPage: React.FC = () => {
                     </button>
                   </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
           </div>
         )}
