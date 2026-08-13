@@ -32,17 +32,15 @@ services:
         generateValue: true
       - key: FRONTEND_URL
         fromService:
-          type: web
+          type: static
           name: sreyas-media-club-frontend
           property: host
       - key: STORAGE_PROVIDER
         value: local
 
-  # 2. React Frontend Static Site (Free Static Site)
-  - type: web
+  # 2. React Frontend Static Site (Proper Static Site Service)
+  - type: static
     name: sreyas-media-club-frontend
-    env: static
-    plan: free
     rootDir: frontend
     buildCommand: npm run build
     staticPublishPath: ./dist
