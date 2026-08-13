@@ -59,7 +59,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         if ("/api/auth/login".equalsIgnoreCase(path) && "POST".equalsIgnoreCase(method)) {
             Bucket bucket = loginBuckets.computeIfAbsent(clientIP, k -> createLoginBucket());
             if (!bucket.tryConsume(1)) {
-                sendRateLimitResponse(response, "Too many login attempts. Please try again in a few minutes.");
+                sendRateLimitResponse(request, response, "Too many login attempts. Please try again in a few minutes.");
                 return;
             }
         }
@@ -69,7 +69,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             ("POST".equalsIgnoreCase(method) && "/api/contact".equalsIgnoreCase(path))) {
             Bucket bucket = formBuckets.computeIfAbsent(clientIP, k -> createFormBucket());
             if (!bucket.tryConsume(1)) {
-                sendRateLimitResponse(response, "Too many form submissions. Please try again later.");
+                sendRateLimitResponse(request, response, "Too many form submissions. Please try again later.");
                 return;
             }
         }
@@ -77,7 +77,14 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void sendRateLimitResponse(HttpServletResponse response, String message) throws IOException {
+    private void sendRateLimitResponse(HttpServletRequest request, HttpServletResponse response, String message) throws IOException {
+        String origin = request.getHeader("Origin");
+        if (origin != null && !origin.isEmpty()) {
+            response.setHeader("Access-Control-Allow-Origin", origin);
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+        } else {
+            response.setHeader("Access-Control-Allow-Origin", "*");
+        }
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         String json = String.format(
