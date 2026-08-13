@@ -2,13 +2,12 @@
 # https://render.com/docs/blueprint-spec
 
 services:
-  # 1. Spring Boot Backend Web Service
+  # 1. Spring Boot Backend Web Service (Docker Environment)
   - type: web
     name: sreyas-media-club-backend
-    env: java
+    env: docker
+    dockerfilePath: ./Dockerfile
     rootDir: backend
-    buildCommand: mvn clean package -DskipTests
-    startCommand: java -jar target/media-club-backend-1.0.0-SNAPSHOT.jar
     healthCheckPath: /actuator/health
     autoDeploy: true
     envVars:
