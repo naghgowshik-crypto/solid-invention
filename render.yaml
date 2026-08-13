@@ -26,11 +26,11 @@ services:
         fromDatabase:
           name: sreyas-media-club-db
           property: database
-      - key: DATABASE_USERNAME
+      - key: DB_USERNAME
         fromDatabase:
           name: sreyas-media-club-db
           property: user
-      - key: DATABASE_PASSWORD
+      - key: DB_PASSWORD
         fromDatabase:
           name: sreyas-media-club-db
           property: password
