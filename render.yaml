@@ -2,10 +2,11 @@
 # https://render.com/docs/blueprint-spec
 
 services:
-  # 1. Spring Boot Backend Web Service (Docker Environment)
+  # 1. Spring Boot Backend Web Service (Free Docker Web Service)
   - type: web
     name: sreyas-media-club-backend
     env: docker
+    plan: free
     dockerfilePath: ./Dockerfile
     rootDir: backend
     healthCheckPath: /actuator/health
@@ -37,10 +38,11 @@ services:
       - key: STORAGE_PROVIDER
         value: local
 
-  # 2. React Frontend Static Site
+  # 2. React Frontend Static Site (Free Static Site)
   - type: web
     name: sreyas-media-club-frontend
     env: static
+    plan: free
     rootDir: frontend
     buildCommand: npm run build
     staticPublishPath: ./dist
@@ -58,7 +60,8 @@ services:
           path: /api
 
 databases:
-  # 3. Render Managed PostgreSQL Database
+  # 3. Render Managed PostgreSQL Database (Free Database Instance)
   - name: sreyas-media-club-db
     databaseName: sreyas_media_club
     user: sreyas_admin
+    plan: free
