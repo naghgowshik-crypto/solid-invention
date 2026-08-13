@@ -1,0 +1,27 @@
+# Environment files and secrets
+.env
+.env.production
+.env.local
+.env.*.local
+*.env
+
+# Build outputs and dependencies
+backend/target/
+frontend/dist/
+frontend/node_modules/
+node_modules/
+dist/
+target/
+
+# Local media uploads directory (ephemeral local storage)
+uploads/
+backend/uploads/
+
+# IDE and System files
+.idea/
+.vscode/
+*.swp
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
