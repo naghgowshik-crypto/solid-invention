@@ -34,7 +34,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            if (userRepository.count() == 0) {
+            if (userRepository.findByUsername("admin").isEmpty()) {
                 seedDefaultAdminUser();
             }
             if (eventRepository.count() == 0) {
